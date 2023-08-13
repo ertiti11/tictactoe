@@ -7,9 +7,6 @@ export const checkWinner = (board) => {
       return board[a];
     }
   }
-  if (checkEndGame(board)) {
-    return "tie";
-  }
 };
 
 export const checkEndGame = (newBoard) => {

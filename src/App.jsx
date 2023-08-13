@@ -24,7 +24,24 @@ function AI_Move(board, playerTurn) {
     }
   }
 
-  // Si no hay una jugada defensiva, elegir el primer espacio vacío
+  // Verificar si la IA puede ganar en su próximo turno
+  for (let i = 0; i < simulatedBoard.length; i++) {
+    if (!simulatedBoard[i]) {
+      // Simular movimiento de la IA en esta posición
+      simulatedBoard[i] = playerTurn === TURNS.X ? TURNS.O : TURNS.X;
+
+      // Verificar si la IA puede ganar
+      if (
+        checkWinner(simulatedBoard, playerTurn === TURNS.X ? TURNS.O : TURNS.X)
+      ) {
+        return i; // Elegir esta posición para ganar el juego
+      }
+
+      simulatedBoard[i] = null; // Revertir la simulación
+    }
+  }
+
+  // Si no hay movimientos defensivos ni oportunidades de victoria, elegir el primer espacio vacío
   for (let i = 0; i < board.length; i++) {
     if (!board[i]) {
       return i;
