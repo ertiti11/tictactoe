@@ -1,27 +1,33 @@
 import "./index.css";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import confetti from "canvas-confetti";
 import { Square } from "./components/Square";
 import { TURNS } from "./constants";
-import { checkWinner,checkEndGame } from "./logic/board";
-import  WinnerModal  from "./components/WinnerModal";
+import { checkWinner, checkEndGame } from "./logic/board";
+import WinnerModal from "./components/WinnerModal";
+
+function AI_Move(board) {
+  for (let i = 0; i < board.length; i++) {
+      if (!board[i]) {
+          return i; // Elegir el primer espacio vacío
+      }
+  }
+}
 
 function App() {
-  const [board, setBoard] = useState(()=>{
-    const boardFromStorage = window.localStorage.getItem('board');
-    return boardFromStorage ? JSON.parse(boardFromStorage) : Array(9).fill(null);
+  const [board, setBoard] = useState(() => {
+    const boardFromStorage = window.localStorage.getItem("board");
+    return boardFromStorage
+      ? JSON.parse(boardFromStorage)
+      : Array(9).fill(null);
   });
 
-  const [turn, setTurn] = useState(()=>{
-    const turnFromStorage = window.localStorage.getItem('turn')
+  const [turn, setTurn] = useState(() => {
+    const turnFromStorage = window.localStorage.getItem("turn");
     return turnFromStorage ? turnFromStorage : TURNS.X;
   });
 
-
   const [winner, setWinner] = useState(null);
-
-  
-
 
   const updateBoard = (index) => {
     if (winner || board[index]) return;
@@ -32,27 +38,37 @@ function App() {
     const newTurn = turn === TURNS.X ? TURNS.O : TURNS.X;
     setTurn(newTurn);
     // guardar partida
-    window.localStorage.setItem('board', JSON.stringify(newBoard));
-    window.localStorage.setItem('turn', newTurn);
-    console.log(window.localStorage.getItem('turn'));
+    window.localStorage.setItem("board", JSON.stringify(newBoard));
+    window.localStorage.setItem("turn", newTurn);
+    console.log(window.localStorage.getItem("turn"));
     const newWinner = checkWinner(newBoard);
-    if(newWinner){
-      confetti({particleCount: 250, spread: 180});
-      
+    if (newWinner) {
+      confetti({ particleCount: 250, spread: 180 });
+
       setWinner(newWinner);
-    }else if(checkEndGame(newBoard)){
+    } else if (checkEndGame(newBoard)) {
       setWinner(false);
     }
-    
   };
 
   const resetBoard = () => {
     setBoard(Array(9).fill(null));
     setTurn(TURNS.X);
     setWinner(null);
-    window.localStorage.removeItem('board');
-    window.localStorage.removeItem('turn');
+    window.localStorage.removeItem("board");
+    window.localStorage.removeItem("turn");
   };
+  useEffect(() => {
+        if (turn === TURNS.O && !winner) {
+            const timeout = setTimeout(() => {
+                const aiMoveIndex = AI_Move(board);
+                if (board[aiMoveIndex] === null) {
+                    updateBoard(aiMoveIndex);
+                }
+            }, 1000); // Retraso de 1 segundo para el movimiento de la IA
+            return () => clearTimeout(timeout);
+        }
+    }, [board, turn, winner]);
 
   return (
     <main className="board">
