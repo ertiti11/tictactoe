@@ -6,11 +6,29 @@ import { TURNS } from "./constants";
 import { checkWinner, checkEndGame } from "./logic/board";
 import WinnerModal from "./components/WinnerModal";
 
-function AI_Move(board) {
-  for (let i = 0; i < board.length; i++) {
-      if (!board[i]) {
-          return i; // Elegir el primer espacio vacío
+function AI_Move(board, playerTurn) {
+  // Copiar el tablero para simular movimientos
+  const simulatedBoard = [...board];
+
+  for (let i = 0; i < simulatedBoard.length; i++) {
+    if (!simulatedBoard[i]) {
+      // Simular movimiento del jugador en esta posición
+      simulatedBoard[i] = playerTurn;
+
+      // Verificar si el movimiento bloquea una victoria del oponente
+      if (checkWinner(simulatedBoard, playerTurn)) {
+        return i; // Elegir esta posición para bloquear el movimiento del jugador
       }
+
+      simulatedBoard[i] = null; // Revertir la simulación
+    }
+  }
+
+  // Si no hay una jugada defensiva, elegir el primer espacio vacío
+  for (let i = 0; i < board.length; i++) {
+    if (!board[i]) {
+      return i;
+    }
   }
 }
 
@@ -59,16 +77,16 @@ function App() {
     window.localStorage.removeItem("turn");
   };
   useEffect(() => {
-        if (turn === TURNS.O && !winner) {
-            const timeout = setTimeout(() => {
-                const aiMoveIndex = AI_Move(board);
-                if (board[aiMoveIndex] === null) {
-                    updateBoard(aiMoveIndex);
-                }
-            }, 1000); // Retraso de 1 segundo para el movimiento de la IA
-            return () => clearTimeout(timeout);
+    if (turn === TURNS.O && !winner) {
+      const timeout = setTimeout(() => {
+        const aiMoveIndex = AI_Move(board, TURNS.O);
+        if (board[aiMoveIndex] === null) {
+          updateBoard(aiMoveIndex);
         }
-    }, [board, turn, winner]);
+      }, 1000);
+      return () => clearTimeout(timeout);
+    }
+  }, [board, turn, winner]);
 
   return (
     <main className="board">
